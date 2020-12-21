@@ -13,7 +13,7 @@
 
 
 
-void cuda_blur( unsigned char * d_inR, unsigned char * d_inG, unsigned char * d_inB,
+void cuda_process( unsigned char * d_inR, unsigned char * d_inG, unsigned char * d_inB,
                 unsigned char * d_outR, unsigned char * d_outG, unsigned char * d_outB,
                 int rows, int cols);
 
@@ -115,7 +115,7 @@ int main(int argc, char const *argv[])
     GpuTimer timer;
 
     timer.Start();
-    cuda_blur( d_channelR_in, d_channelG_in, d_channelB_in, 
+    cuda_process( d_channelR_in, d_channelG_in, d_channelB_in, 
                d_channelR_out, d_channelG_out, d_channelB_out, 
                cv_imageInput.rows, cv_imageInput.cols);               
     timer.Stop();
@@ -129,6 +129,10 @@ int main(int argc, char const *argv[])
 
     cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
 
+    cudaFree(d_channelB_in);
+    cudaFree(d_channelG_in);
+    cudaFree(d_channelR_in);
+    
     cudaFree(d_channelR_out);
     cudaFree(d_channelG_out);
     cudaFree(d_channelB_out);

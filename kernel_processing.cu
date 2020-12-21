@@ -76,7 +76,7 @@ void k_sobel (unsigned char * input_channel, unsigned char * outputchannel, int 
 }
 
 
-void cuda_blur( unsigned char * d_inR, unsigned char * d_inG, unsigned char * d_inB,
+void cuda_process( unsigned char * d_inR, unsigned char * d_inG, unsigned char * d_inB,
                 unsigned char * d_outR, unsigned char * d_outG, unsigned char * d_outB,
                 int rows, int cols) {
 
@@ -99,8 +99,4 @@ void cuda_blur( unsigned char * d_inR, unsigned char * d_inG, unsigned char * d_
     k_sobel <<< gridSize, blockSize >>> (d_inB, d_outB, rows, cols);
     cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
 
-
-    cudaFree(d_inR);
-    cudaFree(d_inG);
-    cudaFree(d_inB);
 }

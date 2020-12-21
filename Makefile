@@ -25,7 +25,7 @@ kernel_processing.o: kernel_processing.cu utils.h
 	$(NVCC) -c kernel_processing.cu $(NVCC_OPTS)
 
 clean:
-	rm *.o process
+	rm *.o process *.jpg
 
 
 
