@@ -75,23 +75,6 @@ void k_sobel (unsigned char * input_channel, unsigned char * outputchannel, int 
 
 }
 
-__global__
-void k_recombine_channels(unsigned char * red_out,
-                        unsigned char * gree_out,
-                        unsigned char * blue_out,
-                        int numRows, int numCols,
-                        uchar4 * outputImage ) {
-    
-    int tIdx = threadIdx.x + blockIdx.x * blockDim.x;
-    int tIdy = threadIdx.y + blockIdx.y * blockDim.y;
-
-    const int index = tIdx + numCols * tIdy;
-
-    if ( tIdx >= numCols || tIdy >= numRows) return;
-
-    outputImage[index] = make_uchar4( red_out[index], gree_out[index], blue_out[index], 255 );
-
-}
 
 void cuda_blur( unsigned char * d_inR, unsigned char * d_inG, unsigned char * d_inB,
                 unsigned char * d_outR, unsigned char * d_outG, unsigned char * d_outB,
@@ -116,8 +99,6 @@ void cuda_blur( unsigned char * d_inR, unsigned char * d_inG, unsigned char * d_
     k_sobel <<< gridSize, blockSize >>> (d_inB, d_outB, rows, cols);
     cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
 
-    // k_recombine_channels <<< gridSize, blockSize >>> (d_outR, d_outG, d_outB, rows, cols, d_outputImage);
-    // cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
 
     cudaFree(d_inR);
     cudaFree(d_inG);
