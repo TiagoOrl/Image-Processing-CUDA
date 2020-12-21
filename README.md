@@ -13,3 +13,6 @@ $ ./process in-imgs/exameple.img outputimg.jpg
 
 I've developed this program based of the great course CS344: Intro to Parallel Programming from NVIDIA:
 https://www.youtube.com/playlist?list=PLAwxTw4SYaPnFKojVQrmyOGFCqHTxfdv2
+
+Great video about Image Processing:
+https://www.youtube.com/watch?v=mRM5Js3VLCk&t=1210s
