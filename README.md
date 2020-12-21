@@ -7,5 +7,9 @@ This is a program to scan images and process them in parallel in CUDA GPU's. The
  output channels into an array of uchar4 (end of parallel region), we are back into the serial code and we use openCV again to 
 show and write our output data.
 
+To generate the executable in Linux, just execute make inside terminal and:
+
+$ ./process in-imgs/exameple.img outputimg.jpg
+
 I've developed this program based of the great course CS344: Intro to Parallel Programming from NVIDIA:
 https://www.youtube.com/playlist?list=PLAwxTw4SYaPnFKojVQrmyOGFCqHTxfdv2
