@@ -1,10 +1,10 @@
 
-### Img filters processed in CUDA GPGPU ###
+## Img filters processed in CUDA GPGPU ##
 Img processing application that I've developed in C++ CUDA.
+To build, just execute make file (tested in Pop!OS 20.04)
 
-To generate the executable in Linux, just execute make inside terminal and:
-
-$ ./process in-imgs/exameple.img outputimg.jpg
+### Run ###
+$ ./process [--sobel|--sobelBW] imgInput.jpg outputName
 
 Course Reference by NVIDIA
 https://www.youtube.com/playlist?list=PLAwxTw4SYaPnFKojVQrmyOGFCqHTxfdv2
