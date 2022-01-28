@@ -50,7 +50,7 @@ int main(int argc, char const *argv[])
 
 
     if (imgInput.empty() ) {
-        std::cerr << "cound not open file: " << input_file << std::endl;
+        std::cerr << "cound not open file: " << input_file << "\n";
         exit(1);
     }
 
@@ -64,7 +64,7 @@ int main(int argc, char const *argv[])
     } 
 
     else {
-        std::cerr << "Usage:\n ./process [--sobel, --sobelBW...] input.jpg outputName" << std::endl;
+        std::cerr << "Usage:\n ./process [--sobel, --sobelBW...] input.jpg outputName\n\n";
         exit(1);
     }
 
