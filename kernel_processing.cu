@@ -191,13 +191,13 @@ void cuda_sobel( unsigned char * d_inR, unsigned char * d_inG, unsigned char * d
     // wrong blockwidth will cause illegal memory access
 
     int blockwidth = 16;   
-    int blocksX = rows / blockwidth + 1;    
-    int blocksY = cols / blockwidth + 1;
-    const dim3 blockSize (blockwidth, blockwidth, 1);
-    const dim3 gridSize (blocksX, blocksY, 1);
+    int numBlocksX = rows / blockwidth + 1;    
+    int numBlocksY = cols / blockwidth + 1;
+    const dim3 threadsPerBlock (blockwidth, blockwidth, 1);
+    const dim3 totalBlocks (numBlocksX, numBlocksY, 1);
     
 
-    k_sobel <<< gridSize, blockSize >>> (
+    k_sobel <<< totalBlocks, threadsPerBlock >>> (
         d_inR, d_inG, d_inB,
         d_outR, d_outG, d_outB,
         rows, cols);
@@ -214,13 +214,13 @@ void cuda_sobelBW(
     // wrong blockwidth will cause illegal memory access
 
     int blockwidth = 16;   
-    int blocksX = rows / blockwidth + 1;    
-    int blocksY = cols / blockwidth + 1;
-    const dim3 blockSize (blockwidth, blockwidth, 1);
-    const dim3 gridSize (blocksX, blocksY, 1);
+    int numBlocksX = rows / blockwidth + 1;    
+    int numBlocksY = cols / blockwidth + 1;
+    const dim3 totalBlocks (numBlocksX, numBlocksY, 1);
+    const dim3 threadsPerBlock (blockwidth, blockwidth, 1);
     
 
-    k_sobelBW <<< gridSize, blockSize >>> (
+    k_sobelBW <<< totalBlocks, threadsPerBlock >>> (
         dIn, 
         dOut,
         rows, cols);
