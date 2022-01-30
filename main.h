@@ -1,4 +1,5 @@
-void output_image(const std::string &output_file, cv::Mat out_image);
+void saveImg(const std::string output_file, cv::Mat out_image);
+void output_image(const std::string output_file, cv::Mat out_image);
 
 void prepare_allocate1(uchar ** h_channelIn, 
                       uchar ** d_channelIn,

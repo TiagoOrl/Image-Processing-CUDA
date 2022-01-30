@@ -13,13 +13,14 @@
 
 int main(int argc, char const *argv[])
 {
-    if (argc != 4) {
-        printf("Usage: process [--filter] inputfile outputname \n");
+    if (argc != 5) {
+        printf("Usage: process --filter inputfile outputname [-s | -a]  \n");
         return EXIT_FAILURE;
     }
     std::string filter = argv[1];
     std::string input_file(argv[2]);
-    std::string outputName(argv[argc - 1]);
+    std::string outputName(argv[argc - 2]);
+    std::string saveFlag(argv[argc - 1]);
     cv::Mat imgInput = cv::imread(input_file.c_str(), cv::IMREAD_REDUCED_COLOR_2);
     cv::Mat imgOutput;
 
@@ -46,6 +47,8 @@ int main(int argc, char const *argv[])
         exit(1);
     }
 
+    if (saveFlag.compare("-s") == 0)
+        saveImg( outputName, imgOutput);
     output_image(outputName, imgOutput);
 
     return 0;
@@ -208,15 +211,17 @@ void prepare_allocate1(uchar ** h_channelIn,
     checkCudaErrors(cudaMemset(*d_channelOut, 0, sizeof(uchar) * img_size));
 }
 
-void output_image(const std::string &output_file, cv::Mat out_image) {
+void output_image(const std::string output_file, cv::Mat out_image) {
 
-    cv::imshow("OUTPUT", out_image);
+    cv::imshow(output_file, out_image);
     char k;
 
     while (k != 'q'){
         k = cv::waitKey(0); // img_input for a keystroke in the window
     }
-    
-    // output the image
+}
+
+void saveImg(const std::string output_file, cv::Mat out_image) {
+    // save the image
     cv::imwrite(output_file + ".jpg", out_image);
 }
