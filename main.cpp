@@ -1,9 +1,11 @@
-#include <opencv4/opencv2/core/core.hpp>
+
 #include <opencv4/opencv2/highgui/highgui.hpp>
 #include <opencv4/opencv2/opencv.hpp>
 #include <opencv4/opencv2/imgcodecs.hpp>
 #include <opencv4/opencv2/core/types.hpp>
 #include <opencv4/opencv2/imgproc.hpp>
+#include <opencv4/opencv2/core/core.hpp>
+
 #include <string>
 
 #include "timer.h"
@@ -17,6 +19,7 @@ int main(int argc, char const *argv[])
         printf("Usage: process --filter inputfile outputname [-s | -a]  \n");
         return EXIT_FAILURE;
     }
+    
     std::string filter = argv[1];
     std::string input_file(argv[2]);
     std::string outputName(argv[argc - 2]);
