@@ -4,14 +4,14 @@ GCC=g++
 OPENCV_INCLUDEPATH=/usr/include/opencv4
 OPENCV_LIBS= -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_imgcodecs
 
-NVCC_OPTS= -O3 -g -Xcompiler -Wall -Xcompiler -Wextra -m64 
+NVCC_OPTS= -O3 -g -G -Xcompiler -Wall -Xcompiler -Wextra -m64 
 
-GCC_OPTS= -O3 -g -m64 
+GCC_OPTS= -O3 -g -G -m64 
 
 
 
 process: main.o kernel_processing.o
-	$(NVCC) -o process main.o kernel_processing.o $(OPENCV_LIBS) $(NVCC_OPTS)
+	$(NVCC) -o process main.o kernel_processing.o $(OPENCV_LIBS)
 
 main.o: main.cpp timer.h utils.h 
 	$(GCC) -c main.cpp -I $(OPENCV_INCLUDEPATH)
