@@ -211,14 +211,14 @@ void cuda_sobel( unsigned char * d_inR, unsigned char * d_inG, unsigned char * d
                 unsigned char * d_outR, unsigned char * d_outG, unsigned char * d_outB,
                 int height, int width) {
 
-    int blockwidth = 128;   
+    int blockwidth = 16;   
     int numBlocksX = width / blockwidth + 1;    
     int numBlocksY = height / blockwidth + 1;
     const dim3 threadsPerBlock (blockwidth, blockwidth, 1);
-    const dim3 totalBlocks (numBlocksX, numBlocksY, 1);
+    const dim3 numBlocks (numBlocksX, numBlocksY, 1);
     
 
-    k_sobel <<< threadsPerBlock, totalBlocks >>> (
+    k_sobel <<< numBlocks, threadsPerBlock >>> (
         d_inR, d_inG, d_inB,
         d_outR, d_outG, d_outB,
         height, width);
@@ -232,14 +232,14 @@ void cuda_sobelBW(
                 unsigned char * dOut, 
                 int height, int width) {
 
-    int blockwidth = 128;   
+    int blockwidth = 16;   
     int numBlocksX = width / blockwidth + 1;    
     int numBlocksY = height / blockwidth + 1;
-    const dim3 totalBlocks (numBlocksX, numBlocksY, 1);
+    const dim3 numBlocks (numBlocksX, numBlocksY, 1);
     const dim3 threadsPerBlock (blockwidth, blockwidth, 1);
     
 
-    k_sobelBW <<< threadsPerBlock, totalBlocks >>> (
+    k_sobelBW <<< numBlocks, threadsPerBlock >>> (
         dIn, 
         dOut,
         height, width
