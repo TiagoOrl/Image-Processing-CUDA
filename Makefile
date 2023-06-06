@@ -10,12 +10,14 @@ GCC_OPTS= -O3 -g -G -m64
 
 
 
-process: main.o kernel_processing.o
-	$(NVCC) -o process main.o kernel_processing.o $(OPENCV_LIBS)
+process: main.o kernel_processing.o memory.o
+	$(NVCC) -o process main.o kernel_processing.o memory.o $(OPENCV_LIBS)
 
 main.o: main.cpp timer.h utils.h 
 	$(GCC) -c main.cpp -I $(OPENCV_INCLUDEPATH)
 
+memory.o: memory.cuh
+	$(NVCC) -c memory.cu
 
 kernel_processing.o: kernel_processing.cu utils.h
 	$(NVCC) -c kernel_processing.cu 

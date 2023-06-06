@@ -239,6 +239,8 @@ void cuda_sobelBW(
     const dim3 threadsPerBlock (blockwidth, blockwidth, 1);
     
 
+    std::cout << "num of blocks, x = " << numBlocks.x << " y = " << numBlocks.y << std::endl;
+
     k_sobelBW <<< numBlocks, threadsPerBlock >>> (
         dIn, 
         dOut,
