@@ -11,6 +11,7 @@
 #include "timer.h"
 #include "utils.h"
 #include "kernel_processing.h"
+#include "memory.cuh"
 #include "main.h"
 
 int main(int argc, char const *argv[])
@@ -88,7 +89,7 @@ void sobel(cv::Mat &imgInput, cv::Mat &imgOutput) {
     uchar * d_channelG_out;
     uchar * d_channelR_out;
 
-    prepare_allocate3(&h_channelR_in, &h_channelG_in, &h_channelB_in, 
+    Memory::prepare_allocate3(&h_channelR_in, &h_channelG_in, &h_channelB_in, 
                      &d_channelR_in, &d_channelG_in, &d_channelB_in,
                      &d_channelR_out, &d_channelG_out, &d_channelB_out, 
                      img_size);
@@ -149,7 +150,7 @@ void sobelBW(cv::Mat &imgInput, cv::Mat &imgOutput) {
     uchar * d_channelIn;
     uchar * d_channelOut;
 
-    prepare_allocate1(&h_channelIn, &d_channelIn, &d_channelOut, img_size);
+    Memory::prepare_allocate1(&h_channelIn, &d_channelIn, &d_channelOut, img_size);
 
     GpuTimer timer;
 
@@ -174,45 +175,6 @@ void sobelBW(cv::Mat &imgInput, cv::Mat &imgOutput) {
     cv::merge(out_rgb, 1, imgOutput);
 }
 
-
-void prepare_allocate3(uchar ** h_channelR, uchar ** h_channelG, uchar ** h_channelB, 
-                      uchar ** d_channelR, uchar ** d_channelG, uchar ** d_channelB,
-                      uchar ** d_channelR_out, uchar ** d_channelG_out, uchar ** d_channelB_out,
-                      int img_size)
-{
-
-    checkCudaErrors(cudaMalloc(d_channelR, sizeof(uchar) * img_size));
-    checkCudaErrors(cudaMalloc(d_channelG, sizeof(uchar) * img_size));
-    checkCudaErrors(cudaMalloc(d_channelB, sizeof(uchar) * img_size));
-
-    checkCudaErrors(cudaMalloc(d_channelR_out, sizeof(uchar) * img_size));
-    checkCudaErrors(cudaMalloc(d_channelG_out, sizeof(uchar) * img_size));
-    checkCudaErrors(cudaMalloc(d_channelB_out, sizeof(uchar) * img_size));
-
-    checkCudaErrors(cudaMemset(*d_channelR_out, 0, sizeof(uchar) * img_size));
-    checkCudaErrors(cudaMemset(*d_channelG_out, 0, sizeof(uchar) * img_size));
-    checkCudaErrors(cudaMemset(*d_channelB_out, 0, sizeof(uchar) * img_size));
-
-    checkCudaErrors(cudaMemcpy( *d_channelR, *h_channelR, sizeof(uchar) * img_size, cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy( *d_channelG, *h_channelG, sizeof(uchar) * img_size, cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy( *d_channelB, *h_channelB, sizeof(uchar) * img_size, cudaMemcpyHostToDevice));
-
-}
-
-
-void prepare_allocate1(uchar ** h_channelIn, 
-                      uchar ** d_channelIn,
-                      uchar ** d_channelOut,
-                      int img_size)
-{
-    checkCudaErrors(cudaMalloc(d_channelIn, sizeof(uchar) * img_size));
-
-    checkCudaErrors(cudaMalloc(d_channelOut, sizeof(uchar) * img_size));
-
-    checkCudaErrors(cudaMemcpy( *d_channelIn, *h_channelIn, sizeof(uchar) * img_size, cudaMemcpyHostToDevice));
-
-    checkCudaErrors(cudaMemset(*d_channelOut, 0, sizeof(uchar) * img_size));
-}
 
 void output_image(const std::string output_file, cv::Mat out_image) {
 
