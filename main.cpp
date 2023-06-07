@@ -1,7 +1,7 @@
 #include <string>
 
-#include "utils.h"
-#include "image.hpp"
+#include "src/utils/utils.h"
+#include "src/classes/image.hpp"
 
 int main(int argc, char const *argv[])
 {
