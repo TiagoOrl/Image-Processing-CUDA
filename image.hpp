@@ -1,9 +1,9 @@
 #ifndef IMAGE_CLASS_H
 #define IMAGE_CLASS_H
 
+#include <opencv4/opencv2/highgui/highgui.hpp>
 #include <opencv4/opencv2/opencv.hpp>
 #include <opencv4/opencv2/core/types.hpp>
-#include <opencv4/opencv2/core/core.hpp>
 
 #include "memory.cuh"
 #include "kernel_processing.h"
