@@ -5,8 +5,8 @@
 #include <opencv4/opencv2/opencv.hpp>
 #include <opencv4/opencv2/core/types.hpp>
 
-#include "memory.cuh"
-#include "kernel_processing.h"
+#include "../cuda/memory.cuh"
+#include "../cuda/kernel_processing.h"
 
 class Image
 {

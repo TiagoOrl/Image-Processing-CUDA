@@ -1,6 +1,6 @@
 
-#include "utils.h"
-#include "timer.h"
+#include "../utils/timer.h"
+#include "../utils/utils.h"
 #include <stdio.h>
 
 
