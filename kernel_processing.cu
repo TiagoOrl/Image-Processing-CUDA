@@ -1,5 +1,6 @@
 
 #include "utils.h"
+#include "timer.h"
 #include <stdio.h>
 
 
@@ -207,46 +208,77 @@ void k_sobelBW (
 }
 
 
-void cuda_sobel( unsigned char * d_inR, unsigned char * d_inG, unsigned char * d_inB,
-                unsigned char * d_outR, unsigned char * d_outG, unsigned char * d_outB,
-                int height, int width) {
+void cuda_sobel( 
+    unsigned char * d_inR, unsigned char * d_inG, unsigned char * d_inB,
+    unsigned char * d_outR, unsigned char * d_outG, unsigned char * d_outB,
+    unsigned char * h_channelR_out, unsigned char * h_channelG_out, unsigned char * h_channelB_out,
+    int height, int width, 
+    int blockWidth
+)   {
 
-    int blockwidth = 16;   
-    int numBlocksX = width / blockwidth + 1;    
-    int numBlocksY = height / blockwidth + 1;
-    const dim3 threadsPerBlock (blockwidth, blockwidth, 1);
+    int img_size = width * height;
+    int numBlocksX = width / blockWidth + 1;    
+    int numBlocksY = height / blockWidth + 1;
+    const dim3 threadsPerBlock (blockWidth, blockWidth, 1);
     const dim3 numBlocks (numBlocksX, numBlocksY, 1);
-    
+    GpuTimer timer;
 
+    timer.Start();
     k_sobel <<< numBlocks, threadsPerBlock >>> (
         d_inR, d_inG, d_inB,
         d_outR, d_outG, d_outB,
         height, width);
+
+    timer.Stop();
+    printf("elapsed: %f ms\n", timer.Elapsed());
     
     cudaDeviceSynchronize(); 
     checkCudaErrors(cudaGetLastError());
+
+    checkCudaErrors( cudaMemcpy( h_channelR_out, d_outR, sizeof(unsigned char) * img_size, cudaMemcpyDeviceToHost) );
+    checkCudaErrors( cudaMemcpy( h_channelG_out, d_outG, sizeof(unsigned char) * img_size, cudaMemcpyDeviceToHost) );
+    checkCudaErrors( cudaMemcpy( h_channelB_out, d_outB, sizeof(unsigned char) * img_size, cudaMemcpyDeviceToHost) );
+
+
+    cudaFree(d_inR);
+    cudaFree(d_inG);
+    cudaFree(d_inB);
+    
+    cudaFree(d_outR);
+    cudaFree(d_outG);
+    cudaFree(d_outB);
 }
 
 void cuda_sobelBW( 
-                unsigned char * dIn, 
-                unsigned char * dOut, 
-                int height, int width) {
+    unsigned char * dIn, 
+    unsigned char * dOut, 
+    int height, int width, int blockwidth, 
+    unsigned char * h_channelOut
+)   {
 
-    int blockwidth = 16;   
     int numBlocksX = width / blockwidth + 1;    
     int numBlocksY = height / blockwidth + 1;
     const dim3 numBlocks (numBlocksX, numBlocksY, 1);
     const dim3 threadsPerBlock (blockwidth, blockwidth, 1);
+    GpuTimer timer;
     
 
     std::cout << "num of blocks, x = " << numBlocks.x << " y = " << numBlocks.y << std::endl;
 
+    timer.Start();
     k_sobelBW <<< numBlocks, threadsPerBlock >>> (
         dIn, 
         dOut,
         height, width
     );
+
+    timer.Stop();
+    printf("elapsed: %f ms\n", timer.Elapsed());
     
     cudaDeviceSynchronize(); 
     checkCudaErrors(cudaGetLastError());
+    checkCudaErrors( cudaMemcpy( h_channelOut, dOut, sizeof(unsigned char) * width * height, cudaMemcpyDeviceToHost) );
+
+    cudaFree(dIn);
+    cudaFree(dOut);
 }
