@@ -5,15 +5,25 @@
 
 int main(int argc, char const *argv[])
 {
-    if (argc != 5) {
-        printf("Usage: process --filter inputfile outputname [-s | -a]  \n");
+    if (argc < 4) {
+        printf("Usage: process --filter inputfile outputname [-s]  \n");
         return EXIT_FAILURE;
     }
     
-    std::string filter = argv[1];
+    std::string filter(argv[1]);
     std::string input_file(argv[2]);
-    std::string outputName(argv[argc - 2]);
-    std::string saveFlag(argv[argc - 1]);
+    std::string outputName("");
+    std::string saveFlag("");
+
+    if (argc == 5) {
+        outputName = argv[argc - 2];
+        saveFlag = argv[argc - 1];
+    }
+
+    if (argc == 4) {
+        outputName = argv[argc - 1];
+    }
+
     cv::Mat imgInput = cv::imread(input_file.c_str(), cv::IMREAD_REDUCED_COLOR_2);
     cv::Mat imgOutput;
 
