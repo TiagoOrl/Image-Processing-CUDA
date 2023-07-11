@@ -15,3 +15,11 @@ void cuda_sobelBW(
     int blockwidth, 
     unsigned char * h_channelOut
 );
+
+void cuda_blur(
+    u_char * d_inR, u_char * d_inG, u_char * d_inB,
+    u_char * d_outR, u_char * d_outG, u_char * d_outB,
+    u_char * h_outR, u_char * h_outG, u_char * h_outB,
+    int height, int width, 
+    int blockWidth
+);

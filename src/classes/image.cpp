@@ -14,7 +14,7 @@ void Image::sobelBW(cv::Mat &imgInput, cv::Mat &imgOutput) {
     // d_ refers to data in compute device (gpu/VRAM)
 
     uchar * h_channelIn = in_rgb[0].data;
-    uchar * h_channelOut = in_rgb[0].data;
+    uchar * h_channelOut = out_rgb[0].data;
 
     uchar * d_channelIn;
     uchar * d_channelOut;
@@ -49,9 +49,9 @@ void Image::sobel(cv::Mat &imgInput, cv::Mat &imgOutput) {
     uchar * h_channelG_in = in_rgb[1].data;
     uchar * h_channelR_in = in_rgb[0].data;
 
-    uchar * h_channelB_out = in_rgb[2].data;
-    uchar * h_channelG_out = in_rgb[1].data;
-    uchar * h_channelR_out = in_rgb[0].data;
+    uchar * h_channelB_out = out_rgb[2].data;
+    uchar * h_channelG_out = out_rgb[1].data;
+    uchar * h_channelR_out = out_rgb[0].data;
 
     uchar * d_channelB_in;
     uchar * d_channelG_in;
@@ -80,6 +80,58 @@ void Image::sobel(cv::Mat &imgInput, cv::Mat &imgOutput) {
     );               
 
     out_rgb[0].data = h_channelR_out; 
+    out_rgb[1].data = h_channelG_out;
+    out_rgb[2].data = h_channelB_out;
+
+    cv::merge(out_rgb, 3, imgOutput);
+}
+
+void Image::blur(cv::Mat &imgInput, cv::Mat &imgOutput)
+{
+    cv::cvtColor(imgInput, imgInput, cv::COLOR_RGBA2RGB);
+    int imgSize = imgInput.rows * imgInput.cols;
+
+    cv::Mat in_rgb[3];
+    cv::Mat out_rgb[3];
+
+    cv::split(imgInput, in_rgb);
+    cv::split(imgInput, out_rgb);
+
+    uchar * h_channelB_in = in_rgb[2].data;
+    uchar * h_channelG_in = in_rgb[1].data;
+    uchar * h_channelR_in = in_rgb[0].data;
+
+    uchar * h_channelB_out = out_rgb[2].data;
+    uchar * h_channelG_out = out_rgb[1].data;
+    uchar * h_channelR_out = out_rgb[0].data;
+
+    uchar * d_channelB_in;
+    uchar * d_channelG_in;
+    uchar * d_channelR_in;
+
+    uchar * d_channelB_out;
+    uchar * d_channelG_out;
+    uchar * d_channelR_out;
+
+    Memory::prepare_allocate3(
+            &h_channelR_in, &h_channelG_in, &h_channelB_in,
+            &d_channelR_in, &d_channelG_in, & d_channelB_in,
+            &d_channelR_out, &d_channelG_out, &d_channelB_out,
+            imgSize
+    );
+
+    int width  = imgInput.cols;
+    int height = imgInput.rows;
+    int blockWidth = 16;
+
+    cuda_blur(
+        d_channelR_in, d_channelG_in, d_channelB_in,
+        d_channelR_out, d_channelG_out, d_channelB_out,
+        h_channelR_out, h_channelG_out, h_channelB_out,
+        height, width, blockWidth
+    );
+
+    out_rgb[0].data = h_channelR_out;
     out_rgb[1].data = h_channelG_out;
     out_rgb[2].data = h_channelB_out;
 

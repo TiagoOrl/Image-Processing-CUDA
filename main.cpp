@@ -45,6 +45,10 @@ int main(int argc, char const *argv[])
         Image::sobelBW(imgInput, imgOutput);
     } 
 
+    else if (filter.compare("--blur") == 0) {
+        Image::blur(imgInput, imgOutput);
+    }
+
     else {
         std::cerr << "Usage:\n ./process [--sobel, --sobelBW...] input.jpg outputName\n\n";
         exit(1);

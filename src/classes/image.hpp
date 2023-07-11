@@ -13,6 +13,7 @@ class Image
     public:
         static void sobelBW(cv::Mat &imgInput, cv::Mat &imgOutput);
         static void sobel(cv::Mat &imgInput, cv::Mat &imgOutput);
+        static void blur(cv::Mat &imgInput, cv::Mat &imgOutput);
         static void output_image(const std::string output_file, cv::Mat out_image);
         static void saveImg(const std::string output_file, cv::Mat out_image);
 };
