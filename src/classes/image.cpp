@@ -14,7 +14,7 @@ void Image::sobelBW(cv::Mat &imgInput, cv::Mat &imgOutput) {
     // d_ refers to data in compute device (gpu/VRAM)
 
     uchar * h_channelIn = in_rgb[0].data;
-    uchar * h_channelOut = out_rgb[0].data;
+    uchar h_channelOut[img_size];
 
     uchar * d_channelIn;
     uchar * d_channelOut;
@@ -49,9 +49,9 @@ void Image::sobel(cv::Mat &imgInput, cv::Mat &imgOutput) {
     uchar * h_channelG_in = in_rgb[1].data;
     uchar * h_channelR_in = in_rgb[0].data;
 
-    uchar * h_channelB_out = out_rgb[2].data;
-    uchar * h_channelG_out = out_rgb[1].data;
-    uchar * h_channelR_out = out_rgb[0].data;
+    uchar h_channelB_out[img_size];
+    uchar h_channelG_out[img_size];
+    uchar h_channelR_out[img_size];
 
     uchar * d_channelB_in;
     uchar * d_channelG_in;
@@ -101,9 +101,9 @@ void Image::blur(cv::Mat &imgInput, cv::Mat &imgOutput)
     uchar * h_channelG_in = in_rgb[1].data;
     uchar * h_channelR_in = in_rgb[0].data;
 
-    uchar * h_channelB_out = out_rgb[2].data;
-    uchar * h_channelG_out = out_rgb[1].data;
-    uchar * h_channelR_out = out_rgb[0].data;
+    uchar h_channelB_out[imgSize];
+    uchar h_channelG_out[imgSize];
+    uchar h_channelR_out[imgSize];
 
     uchar * d_channelB_in;
     uchar * d_channelG_in;
