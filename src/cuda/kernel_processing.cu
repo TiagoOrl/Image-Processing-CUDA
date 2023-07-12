@@ -17,70 +17,51 @@ void k_blur (
     if (tIdx >= width || tIdy >= height) return;
     int index = width * tIdy + tIdx;
 
-    if (
-        index - 1 < 0 ||
-        index + 1 > size ||
-        index - width < 0 ||
-        index + width > size ||
-        index - width - 1 < 0 ||
-        index - width + 1 < 0 ||
-        index + width - 1 > size ||
-        index + width + 1 > size
-    ) return;
 
-    u_char rColor = (
-        r_in[index] * 0.5 +                    // itself
+    float kernel[] = {
+        1, 4,  6,  4,  1,
+        4, 16, 24, 16, 4,
+        6, 24, 36, 24, 6,
+        4, 16, 24, 16, 4,
+        1, 4,  6,  4,  1
+    };
 
-        r_in[index - 1] * 0.125 +              // west
-        r_in[index + 1] * 0.125 +              // east
+    const uint length = sizeof(kernel) / sizeof(kernel[0]);
 
-        r_in[index - width] * 0.125 +        // north
-        r_in[index + width] * 0.125 +        // south
+    for (uint i = 0; i < length; i++)
+    {
+        kernel[i] = kernel[i] / 256;
+    }
 
-        r_in[index - width - 1] * 0.0 +    // northwest
-        r_in[index - width + 1] * 0.0 +    // northeast
+    int rowCount = -2;
+    int colCount = -2;
 
-        r_in[index + width - 1] * 0.0 +    // southwest
-        r_in[index + width + 1] * 0.0    // southeast
 
-    );
-    r_out[index] = rColor;
+    u_char rSum = 0;
+    u_char gSum = 0;
+    u_char bSum = 0;
+    for (uint i = 0; i < length; i++)
+    {
+        if (i % 5 == 0 && i != 0)
+            rowCount++;
 
-    u_char gColor = (
-        g_in[index] * 0.5 +                    // itself
+        int kIndex = index + rowCount * width + colCount;
+        if (kIndex < 0 || kIndex >= size)    
+            continue;
 
-        g_in[index - 1] * 0.125 +              // west
-        g_in[index + 1] * 0.125 +              // east
+        rSum += r_in[kIndex] * kernel[i];
+        gSum += g_in[kIndex] * kernel[i];
+        bSum += b_in[kIndex] * kernel[i];
 
-        g_in[index - width] * 0.125 +        // north
-        g_in[index + width] * 0.125 +        // south
 
-        g_in[index - width - 1] * 0.0 +    // northwest
-        g_in[index - width + 1] * 0.0 +    // northeast
+        colCount++;
+        if (colCount == 2)
+            colCount = -2;
 
-        g_in[index + width - 1] * 0.0 +    // southwest
-        g_in[index + width + 1] * 0.0    // southeast
-
-    );
-    g_out[index] = gColor;
-
-    u_char bColor = (
-        b_in[index] * 0.5 +                    // itself
-
-        b_in[index - 1] * 0.125 +              // west
-        b_in[index + 1] * 0.125 +              // east
-
-        b_in[index - width] * 0.125 +        // north
-        b_in[index + width] * 0.125 +        // south
-
-        b_in[index - width - 1] * 0.0 +    // northwest
-        b_in[index - width + 1] * 0.0 +    // northeast
-
-        b_in[index + width - 1] * 0.0 +    // southwest
-        b_in[index + width + 1] * 0.0    // southeast
-
-    );
-    b_out[index] = bColor;
+    }
+    r_out[index] = rSum;
+    g_out[index] = gSum;
+    b_out[index] = bSum;
 }
 
 __global__
