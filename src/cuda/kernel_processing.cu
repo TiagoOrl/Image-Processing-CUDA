@@ -5,33 +5,63 @@
 
 
 __global__
-void k_blurChannel (unsigned char * input_channel, unsigned char * outputchannel, int numRows, int numCols) {
+void k_blur (
+    u_char * r_in, u_char * g_in, u_char * b_in,
+    u_char * r_out, u_char * g_out, u_char * b_out,
+    int height, int width) {
     
     int tIdx = threadIdx.x + blockIdx.x * blockDim.x;
     int tIdy = threadIdx.y + blockIdx.y * blockDim.y;
+    int size = width * height;
 
-    int index = numCols * tIdx + tIdy;
+    if (tIdx >= width || tIdy >= height) return;
+    int index = width * tIdy + tIdx;
 
-    if ( index >= numRows * numCols ) return;
 
-    unsigned char new_color = (
-        input_channel[index] * 0.5 +                    // itself
+    float kernel[] = {
+        1, 4,  6,  4,  1,
+        4, 16, 24, 16, 4,
+        6, 24, 36, 24, 6,
+        4, 16, 24, 16, 4,
+        1, 4,  6,  4,  1
+    };
 
-        input_channel[index - 1] * 0.125 +              // west
-        input_channel[index + 1] * 0.125 +              // east
+    const uint length = sizeof(kernel) / sizeof(kernel[0]);
 
-        input_channel[index - numCols] * 0.125 +        // north
-        input_channel[index + numCols] * 0.125 +        // south
+    for (uint i = 0; i < length; i++)
+    {
+        kernel[i] = kernel[i] / 256;
+    }
 
-        input_channel[index - numCols - 1] * 0.0 +    // northwest
-        input_channel[index - numCols + 1] * 0.0 +    // northeast
+    int rowCount = -2;
+    int colCount = -2;
 
-        input_channel[index + numCols - 1] * 0.0 +    // southwest
-        input_channel[index + numCols + 1] * 0.0    // southeast
 
-    );
+    u_char rSum = 0;
+    u_char gSum = 0;
+    u_char bSum = 0;
+    for (uint i = 0; i < length; i++)
+    {
+        if (i % 5 == 0 && i != 0)
+            rowCount++;
 
-    outputchannel[index] = new_color;
+        int kIndex = index + rowCount * width + colCount;
+        if (kIndex < 0 || kIndex >= size)    
+            continue;
+
+        rSum += r_in[kIndex] * kernel[i];
+        gSum += g_in[kIndex] * kernel[i];
+        bSum += b_in[kIndex] * kernel[i];
+
+
+        colCount++;
+        if (colCount == 2)
+            colCount = -2;
+
+    }
+    r_out[index] = rSum;
+    g_out[index] = gSum;
+    b_out[index] = bSum;
 }
 
 __global__
@@ -207,6 +237,49 @@ void k_sobelBW (
     out_channel[index] = (unsigned char) abs( (h_Rkernel + v_Rkernel) / 2);
 }
 
+
+
+void cuda_blur(
+    u_char * d_inR, u_char * d_inG, u_char * d_inB,
+    u_char * d_outR, u_char * d_outG, u_char * d_outB,
+    u_char * h_outR, u_char * h_outG, u_char * h_outB,
+    int height, int width, 
+    int blockWidth
+)   {
+    int img_size = width * height;
+    int numBlocksX = width / blockWidth + 1;
+    int numBlocksY = height / blockWidth + 1;
+    const dim3 threadsPerBlock(blockWidth, blockWidth, 1);
+    const dim3 numBlocks(numBlocksX, numBlocksY, 1);
+
+    GpuTimer timer;
+
+    timer.Start();
+
+    k_blur<<<numBlocks, threadsPerBlock>>>(
+        d_inR, d_inG, d_inB,
+        d_outR, d_outG, d_outB, 
+        height, width
+    );
+    cudaDeviceSynchronize();
+
+    timer.Stop();
+    printf("elapsed: %f ms\n", timer.Elapsed());
+
+    checkCudaErrors(cudaGetLastError());
+
+    checkCudaErrors(cudaMemcpy(h_outR, d_outR, sizeof(u_char) * img_size, cudaMemcpyDeviceToHost));
+    checkCudaErrors(cudaMemcpy(h_outG, d_outG, sizeof(u_char) * img_size, cudaMemcpyDeviceToHost));
+    checkCudaErrors(cudaMemcpy(h_outB, d_outB, sizeof(u_char) * img_size, cudaMemcpyDeviceToHost));
+
+    cudaFree(d_inR);
+    cudaFree(d_inG);
+    cudaFree(d_inB);
+
+    cudaFree(d_outR);
+    cudaFree(d_outG);
+    cudaFree(d_outB);
+}
 
 void cuda_sobel( 
     unsigned char * d_inR, unsigned char * d_inG, unsigned char * d_inB,
