@@ -49,8 +49,12 @@ int main(int argc, char const *argv[])
         Image::blur(imgInput, imgOutput);
     }
 
+    else if (filter.compare("--gray") == 0) {
+        Image::grayScale(imgInput, imgOutput);
+    }
+
     else {
-        std::cerr << "Usage:\n ./process [--sobel, --sobelBW...] input.jpg outputName\n\n";
+        std::cerr << "Usage:\n ./process [--sobel, --sobelBW, --blur, --gray] input.jpg outputName [-s]\n\n";
         exit(1);
     }
 
