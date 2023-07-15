@@ -5,6 +5,25 @@
 
 
 __global__
+void k_grayScale (
+    u_char * r_in, u_char * g_in, u_char * b_in,
+    u_char * r_out, u_char * g_out, u_char * b_out,
+    int height, int width) {
+        
+        int tIdx = threadIdx.x + blockIdx.x * blockDim.x;
+        int tIdy = threadIdx.y + blockIdx.y * blockDim.y;
+
+        if (tIdx >= width || tIdy >= height) return;
+        int i = width * tIdy + tIdx;
+
+        int avg = (r_in[i] + g_in[i] + b_in[i]) / 3;
+
+        r_out[i] = avg;
+        g_out[i] = avg;
+        b_out[i] = avg;
+    }
+
+__global__
 void k_blur (
     u_char * r_in, u_char * g_in, u_char * b_in,
     u_char * r_out, u_char * g_out, u_char * b_out,
@@ -298,6 +317,46 @@ void cuda_sobel(
 
     timer.Start();
     k_sobel <<< numBlocks, threadsPerBlock >>> (
+        d_inR, d_inG, d_inB,
+        d_outR, d_outG, d_outB,
+        height, width);
+
+    timer.Stop();
+    printf("elapsed: %f ms\n", timer.Elapsed());
+    
+    cudaDeviceSynchronize(); 
+    checkCudaErrors(cudaGetLastError());
+
+    checkCudaErrors( cudaMemcpy( h_channelR_out, d_outR, sizeof(unsigned char) * img_size, cudaMemcpyDeviceToHost) );
+    checkCudaErrors( cudaMemcpy( h_channelG_out, d_outG, sizeof(unsigned char) * img_size, cudaMemcpyDeviceToHost) );
+    checkCudaErrors( cudaMemcpy( h_channelB_out, d_outB, sizeof(unsigned char) * img_size, cudaMemcpyDeviceToHost) );
+
+
+    cudaFree(d_inR);
+    cudaFree(d_inG);
+    cudaFree(d_inB);
+    
+    cudaFree(d_outR);
+    cudaFree(d_outG);
+    cudaFree(d_outB);
+}
+
+void cuda_grayScale(
+    unsigned char * d_inR, unsigned char * d_inG, unsigned char * d_inB,
+    unsigned char * d_outR, unsigned char * d_outG, unsigned char * d_outB,
+    unsigned char * h_channelR_out, unsigned char * h_channelG_out, unsigned char * h_channelB_out,
+    int height, int width, 
+    int blockWidth
+) {
+    int img_size = width * height;
+    int numBlocksX = width / blockWidth + 1;    
+    int numBlocksY = height / blockWidth + 1;
+    const dim3 threadsPerBlock (blockWidth, blockWidth, 1);
+    const dim3 numBlocks (numBlocksX, numBlocksY, 1);
+    GpuTimer timer;
+
+    timer.Start();
+    k_grayScale <<< numBlocks, threadsPerBlock >>> (
         d_inR, d_inG, d_inB,
         d_outR, d_outG, d_outB,
         height, width);
