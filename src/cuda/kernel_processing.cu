@@ -85,175 +85,116 @@ void k_blur (
 
 __global__
 void k_sobel (
-            unsigned char * r_in, unsigned char * g_in, unsigned char * b_in,
-            unsigned char * r_out, unsigned char * g_out, unsigned char * b_out,
+            u_char * r_in, u_char * g_in, u_char * b_in,
+            u_char * r_out, u_char * g_out, u_char * b_out,
             int height, int width) {
     
     int tIdx = threadIdx.x + blockIdx.x * blockDim.x;
     int tIdy = threadIdx.y + blockIdx.y * blockDim.y;
-    int size = height * width;
+    size_t size = height * width;
 
     if (tIdx >= width || tIdy >= height) return;
 
     int index = width * tIdy + tIdx;
 
-    if (
-        index - 1 < 0 ||
-        index + 1 > size ||
-        index - width < 0 ||
-        index + width > size ||
-        index - width - 1 < 0 ||
-        index - width + 1 < 0 ||
-        index + width - 1 > size ||
-        index + width + 1 > size
-    ) return;
+    float hMask[] = {
+        1.0f, 0.0f, -1.0f,
+        2.0f, 0.0f, -2.0f,
+        1.0f, 0.0f, -1.0f
+    };
 
-    int v_Rkernel = (
-        r_in[index] * 0.0 +
-                
-        r_in[index - 1] * 2.0 +     // west
-        r_in[index + 1] * -2.0 +     // east
-        
-        r_in[index - width] * 0.0 +    // north
-        r_in[index + width] * 0.0 +    // south
-        
-        r_in[index - width - 1] * 1.0 +    // northwest
-        r_in[index - width + 1] * -1.0 +    // northeast
-        r_in[index + width - 1] * 1.0 +    // southwest
-        r_in[index + width + 1] * -1.0 ) ;   // southeast
+    float vMask[] = {
+        1.0f, 2.0f, 1.0f,
+        0.0f, 0.0f, 0.0f,
+        -1.0f, -2.0f, -1.0f
+    };
 
-    int h_Rkernel = (
-        r_in[index] * 0.0 +
-                
-        r_in[index - 1] * 0.0 +     // west
-        r_in[index + 1] * 0.0 +     // east
-        
-        r_in[index - width] * 2.0 +    // north
-        r_in[index + width] * -2.0 +    // south
-        
-        r_in[index - width - 1] * 1.0 +    // northwest
-        r_in[index - width + 1] * 1.0 +    // northeast
-        r_in[index + width - 1] * -1.0 +    // southwest
-        r_in[index + width + 1] * -1.0 ) ;   // southeast
+    int hRSum = 0;
+    int vRSum = 0;
+    int hGSum = 0;
+    int vGSum = 0;
+    int hBSum = 0;
+    int vBSum = 0;
+    int rowCount = -1;
+    int colCount = -1;
 
-    r_out[index] = (unsigned char) abs( (h_Rkernel + v_Rkernel) / 2);
+    for (size_t i = 0; i < 9; i++)
+    {
+        if (i % 3 == 0 && i != 0)
+            rowCount++;
+        
+        int kIndex = index + rowCount * width + colCount;
+        if (kIndex < 0 || kIndex >= size)
+            continue;
+        
+        hRSum += r_in[kIndex] * hMask[i];
+        vRSum += r_in[kIndex] * vMask[i];
 
-    int v_Gkernel = (
-        g_in[index] * 0.0 +
-                
-        g_in[index - 1] * 2.0 +     // west
-        g_in[index + 1] * -2.0 +     // east
-        
-        g_in[index - width] * 0.0 +    // north
-        g_in[index + width] * 0.0 +    // south
-        
-        g_in[index - width - 1] * 1.0 +    // northwest
-        g_in[index - width + 1] * -1.0 +    // northeast
-        g_in[index + width - 1] * 1.0 +    // southwest
-        g_in[index + width + 1] * -1.0 ) ;   // southeast
+        hGSum += g_in[kIndex] * hMask[i];
+        vGSum += g_in[kIndex] * vMask[i];
 
-    int h_Gkernel = (
-        g_in[index] * 0.0 +
-                
-        g_in[index - 1] * 0.0 +     // west
-        g_in[index + 1] * 0.0 +     // east
-        
-        g_in[index - width] * 2.0 +    // north
-        g_in[index + width] * -2.0 +    // south
-        
-        g_in[index - width - 1] * 1.0 +    // northwest
-        g_in[index - width + 1] * 1.0 +    // northeast
-        g_in[index + width - 1] * -1.0 +    // southwest
-        g_in[index + width + 1] * -1.0 ) ;   // southeast
+        hBSum += b_in[kIndex] * hMask[i];
+        vBSum += b_in[kIndex] * vMask[i];
 
-    g_out[index] = (unsigned char) abs( (h_Gkernel + v_Gkernel) / 2);
+        colCount++;
+        if (colCount == 1)
+            colCount = -1;
+    }
 
-    int v_Bkernel = (
-        b_in[index] * 0.0 +
-                
-        b_in[index - 1] * 2.0 +     // west
-        b_in[index + 1] * -2.0 +     // east
-        
-        b_in[index - width] * 0.0 +    // north
-        b_in[index + width] * 0.0 +    // south
-        
-        b_in[index - width - 1] * 1.0 +    // northwest
-        b_in[index - width + 1] * -1.0 +    // northeast
-        b_in[index + width - 1] * 1.0 +    // southwest
-        b_in[index + width + 1] * -1.0 ) ;   // southeast
-
-    int h_Bkernel = (
-        b_in[index] * 0.0 +
-                
-        b_in[index - 1] * 0.0 +     // west
-        b_in[index + 1] * 0.0 +     // east
-        
-        b_in[index - width] * 2.0 +    // north
-        b_in[index + width] * -2.0 +    // south
-        
-        b_in[index - width - 1] * 1.0 +    // northwest
-        b_in[index - width + 1] * 1.0 +    // northeast
-        b_in[index + width - 1] * -1.0 +    // southwest
-        b_in[index + width + 1] * -1.0 ) ;   // southeast
-
-    b_out[index] = (unsigned char) abs( (h_Bkernel + v_Bkernel) / 2);
-
+    r_out[index] = (unsigned char) abs( (hRSum + vRSum) / 2);
+    g_out[index] = (unsigned char) abs( (hGSum + vGSum) / 2);
+    b_out[index] = (unsigned char) abs( (hBSum + vBSum) / 2);
 }
 
 __global__
 void k_sobelBW (
-            unsigned char * in_channel, 
-            unsigned char * out_channel,
+            u_char * in_channel, 
+            u_char * out_channel,
             int height, int width) {
     
     int tIdx = threadIdx.x + blockIdx.x * blockDim.x;
     int tIdy = threadIdx.y + blockIdx.y * blockDim.y;
-    int size = width * height;
+    size_t size = width * height;
 
     if (tIdx >= width || tIdy >= height) return;
 
     int index = width * tIdy + tIdx;
 
-        if (
-        index - 1 < 0 ||
-        index + 1 > size ||
-        index - width < 0 ||
-        index + width > size ||
-        index - width - 1 < 0 ||
-        index - width + 1 < 0 ||
-        index + width - 1 > size ||
-        index + width + 1 > size
-    ) return;
+    float hMask[] = {
+        1.0f, 0.0f, -1.0f,
+        2.0f, 0.0f, -2.0f,
+        1.0f, 0.0f, -1.0f
+    };
 
-    int v_Rkernel = (
-        in_channel[index] * 0.0 +
-                
-        in_channel[index - 1] * 2.0 +     // west
-        in_channel[index + 1] * -2.0 +     // east
-        
-        in_channel[index - width] * 0.0 +    // north
-        in_channel[index + width] * 0.0 +    // south
-        
-        in_channel[index - width - 1] * 1.0 +    // northwest
-        in_channel[index - width + 1] * -1.0 +    // northeast
-        in_channel[index + width - 1] * 1.0 +    // southwest
-        in_channel[index + width + 1] * -1.0 ) ;   // southeast
+    float vMask[] = {
+        1.0f, 2.0f, 1.0f,
+        0.0f, 0.0f, 0.0f,
+        -1.0f, -2.0f, -1.0f
+    };
 
-    int h_Rkernel = (
-        in_channel[index] * 0.0 +
-                
-        in_channel[index - 1] * 0.0 +     // west
-        in_channel[index + 1] * 0.0 +     // east
-        
-        in_channel[index - width] * 2.0 +    // north
-        in_channel[index + width] * -2.0 +    // south
-        
-        in_channel[index - width - 1] * 1.0 +    // northwest
-        in_channel[index - width + 1] * 1.0 +    // northeast
-        in_channel[index + width - 1] * -1.0 +    // southwest
-        in_channel[index + width + 1] * -1.0 ) ;   // southeast
+    int hSum = 0;
+    int vSum = 0;
+    int rowCount = -1;
+    int colCount = -1;
 
-    out_channel[index] = (unsigned char) abs( (h_Rkernel + v_Rkernel) / 2);
+    for (size_t i = 0; i < 9; i++)
+    {
+        if (i % 3 == 0 && i != 0)
+            rowCount++;
+        
+        int kIndex = index + rowCount * width + colCount;
+        if (kIndex < 0 || kIndex >= size)
+            continue;
+        
+        hSum += in_channel[kIndex] * hMask[i];
+        vSum += in_channel[kIndex] * vMask[i];
+
+        colCount++;
+        if (colCount == 1)
+            colCount = -1;
+    }
+
+    out_channel[index] = (u_char) abs( (hSum + vSum) / 2);
 }
 
 
