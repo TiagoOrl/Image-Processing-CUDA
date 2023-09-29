@@ -148,8 +148,8 @@ void k_sobel (
 
 __global__
 void k_sobelBW (
-            unsigned char * in_channel, 
-            unsigned char * out_channel,
+            u_char * in_channel, 
+            u_char * out_channel,
             int height, int width) {
     
     int tIdx = threadIdx.x + blockIdx.x * blockDim.x;
@@ -177,17 +177,6 @@ void k_sobelBW (
     int rowCount = -1;
     int colCount = -1;
 
-        if (
-        index - 1 < 0 ||
-        index + 1 > size ||
-        index - width < 0 ||
-        index + width > size ||
-        index - width - 1 < 0 ||
-        index - width + 1 < 0 ||
-        index + width - 1 > size ||
-        index + width + 1 > size
-    ) return;
-
     for (size_t i = 0; i < 9; i++)
     {
         if (i % 3 == 0 && i != 0)
@@ -205,7 +194,7 @@ void k_sobelBW (
             colCount = -1;
     }
 
-    out_channel[index] = (unsigned char) abs( (hSum + vSum) / 2);
+    out_channel[index] = (u_char) abs( (hSum + vSum) / 2);
 }
 
 
