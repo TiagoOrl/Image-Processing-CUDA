@@ -154,11 +154,28 @@ void k_sobelBW (
     
     int tIdx = threadIdx.x + blockIdx.x * blockDim.x;
     int tIdy = threadIdx.y + blockIdx.y * blockDim.y;
-    int size = width * height;
+    size_t size = width * height;
 
     if (tIdx >= width || tIdy >= height) return;
 
     int index = width * tIdy + tIdx;
+
+    float hMask[] = {
+        1.0f, 0.0f, -1.0f,
+        2.0f, 0.0f, -2.0f,
+        1.0f, 0.0f, -1.0f
+    };
+
+    float vMask[] = {
+        1.0f, 2.0f, 1.0f,
+        0.0f, 0.0f, 0.0f,
+        -1.0f, -2.0f, -1.0f
+    };
+
+    int hSum = 0;
+    int vSum = 0;
+    int rowCount = -1;
+    int colCount = -1;
 
         if (
         index - 1 < 0 ||
@@ -171,35 +188,24 @@ void k_sobelBW (
         index + width + 1 > size
     ) return;
 
-    int v_Rkernel = (
-        in_channel[index] * 0.0 +
-                
-        in_channel[index - 1] * 2.0 +     // west
-        in_channel[index + 1] * -2.0 +     // east
+    for (size_t i = 0; i < 9; i++)
+    {
+        if (i % 3 == 0 && i != 0)
+            rowCount++;
         
-        in_channel[index - width] * 0.0 +    // north
-        in_channel[index + width] * 0.0 +    // south
+        int kIndex = index + rowCount * width + colCount;
+        if (kIndex < 0 || kIndex >= size)
+            continue;
         
-        in_channel[index - width - 1] * 1.0 +    // northwest
-        in_channel[index - width + 1] * -1.0 +    // northeast
-        in_channel[index + width - 1] * 1.0 +    // southwest
-        in_channel[index + width + 1] * -1.0 ) ;   // southeast
+        hSum += in_channel[kIndex] * hMask[i];
+        vSum += in_channel[kIndex] * vMask[i];
 
-    int h_Rkernel = (
-        in_channel[index] * 0.0 +
-                
-        in_channel[index - 1] * 0.0 +     // west
-        in_channel[index + 1] * 0.0 +     // east
-        
-        in_channel[index - width] * 2.0 +    // north
-        in_channel[index + width] * -2.0 +    // south
-        
-        in_channel[index - width - 1] * 1.0 +    // northwest
-        in_channel[index - width + 1] * 1.0 +    // northeast
-        in_channel[index + width - 1] * -1.0 +    // southwest
-        in_channel[index + width + 1] * -1.0 ) ;   // southeast
+        colCount++;
+        if (colCount == 1)
+            colCount = -1;
+    }
 
-    out_channel[index] = (unsigned char) abs( (h_Rkernel + v_Rkernel) / 2);
+    out_channel[index] = (unsigned char) abs( (hSum + vSum) / 2);
 }
 
 
